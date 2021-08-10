@@ -1,6 +1,6 @@
-import pandas as pandas
-import pandas as pd
 import sys
+
+import pandas as pd
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -35,6 +35,9 @@ new['version'] = "new"
 # Join all the data together and ignore indexes so it all gets added
 full_set = pd.concat([old, new], ignore_index=True)
 
+# Update YES to 1 and NO to 0
+full_set['Is_Payment_Done?'] = full_set['Is_Payment_Done?'].map({'YES': '1', 'NO': '0', 1: '1', 0: '0'})
+
 # Drop all duplicate columns
 changes = full_set.drop_duplicates(
     subset=['PAYMENT_ID', 'CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'FX_Rate', 'Cost (USD)',
@@ -46,15 +49,43 @@ changes = full_set.drop_duplicates(
 
 print changes
 
-# We want to know where the duplicate account numbers are, that means there have been changes
+# We want to know where the duplicate columns are, that means there have been changes
 dupe_accts = changes.set_index(
     ['CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date', 'Is_Payment_Done?',
      'Payment_Status']).index.get_duplicates()
-print dupe_accts
+dupe_accts_frames = dupe_accts.to_frame().reset_index(drop=True)
+print dupe_accts_frames
 
-# Get all the duplicate rows
-dupes = changes[changes["account number"].isin(dupe_accts)]
-print dupes
-# writer = pd.ExcelWriter("concat.xlsx")
-# full_set.to_excel(writer, "changed")
+# Calling merge() function
+dupes = pd.merge(dupe_accts_frames, changes, how='inner')
+print(dupes)
+
+change_new = dupes[(dupes["version"] == "new")]
+change_old = dupes[(dupes["version"] == "old")]
+
+# Drop the temp columns - we don't need them now
+change_new = change_new.drop(['version'], axis=1)
+change_old = change_old.drop(['version'], axis=1)
+
+print change_old
+print change_new
+
+# Index on the tables
+change_new.set_index(
+    ['CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date', 'Is_Payment_Done?',
+     'Payment_Status'], inplace=True)
+change_old.set_index(
+    ['CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date', 'Is_Payment_Done?',
+     'Payment_Status'], inplace=True)
+
+# Now we can diff because we have two data sets of the same size with the same index
+# diff_panel = pd.Panel(dict(df1=change_old, df2=change_new))
+# diff_output = diff_panel.apply(report_diff, axis=0)
+
+# print diff_output
+# # Diff'ing is done, we need to get a list of removed items
+#
+# writer = pd.ExcelWriter("my-diff-2.xlsx")
+# diff_output.to_excel(writer, "changed")
+#
 # writer.save()
