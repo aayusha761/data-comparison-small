@@ -47,18 +47,18 @@ changes = full_set.drop_duplicates(
             'Products'],
     keep='last')
 
-print changes
+# print changes
 
 # We want to know where the duplicate columns are, that means there have been changes
 dupe_accts = changes.set_index(
     ['CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date', 'Is_Payment_Done?',
      'Payment_Status']).index.get_duplicates()
 dupe_accts_frames = dupe_accts.to_frame().reset_index(drop=True)
-print dupe_accts_frames
+# print dupe_accts_frames
 
 # Calling merge() function
 dupes = pd.merge(dupe_accts_frames, changes, how='inner')
-print(dupes)
+# print(dupes)
 
 change_new = dupes[(dupes["version"] == "new")]
 change_old = dupes[(dupes["version"] == "old")]
@@ -67,8 +67,8 @@ change_old = dupes[(dupes["version"] == "old")]
 change_new = change_new.drop(['version'], axis=1)
 change_old = change_old.drop(['version'], axis=1)
 
-print change_old
-print change_new
+# print change_old
+# print change_new
 
 # Index on the tables
 change_new.set_index(
@@ -78,13 +78,15 @@ change_old.set_index(
     ['CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date', 'Is_Payment_Done?',
      'Payment_Status'], inplace=True)
 
+print change_old
+print change_new
+
 # Now we can diff because we have two data sets of the same size with the same index
 # diff_panel = pd.Panel(dict(df1=change_old, df2=change_new))
 # diff_output = diff_panel.apply(report_diff, axis=0)
-
-# print diff_output
-# # Diff'ing is done, we need to get a list of removed items
 #
+# print diff_output
+
 # writer = pd.ExcelWriter("my-diff-2.xlsx")
 # diff_output.to_excel(writer, "changed")
 #
