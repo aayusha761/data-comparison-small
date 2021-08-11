@@ -82,8 +82,11 @@ print change_old
 print change_new
 
 # Now we can diff because we have two data sets of the same size with the same index
-diff_panel = pd.Panel(dict(df1=change_old, df2=change_new))
-diff_output = diff_panel.apply(report_diff, axis=0)
+try:
+    diff_panel = pd.Panel(dict(df1=change_old, df2=change_new))
+    diff_output = diff_panel.apply(report_diff, axis=0)
+except Exception:
+    print "No Unique Key matches this criteria."
 
 print diff_output
 
