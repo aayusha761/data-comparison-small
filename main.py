@@ -51,7 +51,8 @@ changes = full_set.drop_duplicates(
 
 # We want to know where the duplicate columns are, that means there have been changes
 dupe_accts = changes.set_index(
-    ['PAYMENT_ID', 'CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date', 'Is_Payment_Done?',
+    ['PAYMENT_ID', 'CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date',
+     'Is_Payment_Done?',
      'Payment_Status']).index.get_duplicates()
 dupe_accts_frames = dupe_accts.to_frame().reset_index(drop=True)
 # print dupe_accts_frames
@@ -72,10 +73,12 @@ change_old = change_old.drop(['version'], axis=1)
 
 # Index on the tables
 change_new.set_index(
-    ['PAYMENT_ID', 'CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date', 'Is_Payment_Done?',
+    ['PAYMENT_ID', 'CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date',
+     'Is_Payment_Done?',
      'Payment_Status'], inplace=True)
 change_old.set_index(
-    ['PAYMENT_ID', 'CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date', 'Is_Payment_Done?',
+    ['PAYMENT_ID', 'CONTRACT_NO', 'ContractType', 'Payment Type', 'CURRENCY_CODE', 'Payment_due_date',
+     'Is_Payment_Done?',
      'Payment_Status'], inplace=True)
 
 print change_old
@@ -85,12 +88,9 @@ print change_new
 try:
     diff_panel = pd.Panel(dict(df1=change_old, df2=change_new))
     diff_output = diff_panel.apply(report_diff, axis=0)
+
+    writer = pd.ExcelWriter("my-diff-2.xlsx")
+    diff_output.to_excel(writer, "changed")
+    writer.save()
 except Exception:
     print "No Unique Key matches this criteria."
-
-print diff_output
-
-writer = pd.ExcelWriter("my-diff-2.xlsx")
-diff_output.to_excel(writer, "changed")
-
-writer.save()
